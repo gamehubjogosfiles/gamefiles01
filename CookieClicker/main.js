@@ -17389,7 +17389,7 @@ window.onload=function()
 					if (modsEnabled&&inject) {
 						setTimeout(Function(inject),250);
 					}
-					if (top!=self && !Game.local) Game.ErrorFrame();
+					if (top!=self && !Game.local && !GAMEHUB_EMBED) Game.ErrorFrame();
 					else
 					{
 						console.log('[=== '+choose([
