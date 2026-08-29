@@ -10,6 +10,7 @@
 	var App=typeof App==='undefined'?0:App;
 	var PRESETMODS=[];
 	var LOCAL=(App || !window.location.hostname || window.location.hostname==='localhost' || window.location.hostname==='127.0.0.1');
+	var GAMEHUB_EMBED=(new URLSearchParams(window.location.search).get('gamehub')==='1');
 </script>
 
 <!-- Fullscreen is controlled by the GameHub player. -->
