@@ -1,41 +1,126 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover, user-scalable=no, shrink-to-fit=yes">
-  <meta name="theme-color" content="#111111">
-  <meta name="description" content="Jogue Cuphead online no GameHub.">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Play Cuphead online on GameHub.">
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="../gamehub-loading-theme.css">
   <title>Cuphead</title>
   <style>
-    :root { color-scheme: dark; background: #111; font-family: Arial, Helvetica, sans-serif; }
-    * { box-sizing: border-box; }
-    html, body { width: 100%; min-height: 100%; margin: 0; overflow: hidden; background: #111; }
-    #unity-container { position: fixed; inset: 0; display: grid; place-items: center; background: #111; }
-    #unity-canvas { width: 100vw; height: 100vh; display: block; background: #111; }
-    #loading-ui { position: fixed; inset: 0; z-index: 10; display: grid; place-content: center; gap: 10px; padding: 24px; text-align: center; background: #111; color: #fff; }
-    #loading-status { min-height: 20px; font-size: 15px; font-weight: 600; }
-    #progress-track { width: min(72vw, 320px); height: 6px; overflow: hidden; border-radius: 999px; background: #3a3a3a; }
-    #progress-fill { width: 0; height: 100%; background: #ffffff; transition: width .12s linear; }
-    #progress-detail { min-height: 18px; color: #bdbdbd; font-size: 13px; font-variant-numeric: tabular-nums; }
-    #loading-error { display: none; max-width: min(90vw, 640px); color: #ffb0b0; font-size: 14px; line-height: 1.45; }
-    #orientation { display: none; position: fixed; inset: 0; z-index: 30; place-items: center; padding: 24px; background: #000; color: #fff; font-size: clamp(22px, 8vw, 42px); font-weight: 900; letter-spacing: .08em; text-align: center; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
+    #unity-container { position: fixed; inset: 0; display: grid; place-items: center; background: #000; }
+    #unity-canvas { width: 100vw; height: 100vh; display: block; background: #000; }
+    #orientation { display: none; position: fixed; inset: 0; z-index: 100000; place-items: center; padding: 24px; background: #000; color: #fff; font: 800 clamp(22px, 8vw, 42px)/1.1 Arial, sans-serif; letter-spacing: .04em; text-align: center; }
   </style>
-  <link rel="stylesheet" href="../gamehub-loading-theme.css">
+  <style id="gamehub-touch-style">
+    html, body, body * { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
+    html, body, canvas { -webkit-touch-callout: none !important; touch-action: manipulation; }
+    html, body, canvas, img, a, button, iframe, [role="button"] { -webkit-user-select: none !important; user-select: none !important; }
+    *, *::before, *::after { outline: 0 !important; -webkit-focus-ring-color: transparent !important; }
+  </style>
 </head>
 <body>
   <div id="unity-container"><canvas id="unity-canvas" width="960" height="600" tabindex="-1" aria-label="Cuphead"></canvas></div>
   <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;" role="status" aria-live="polite">
-    <div id="loading-status">Loading...</div>
-    <div id="progress-track" aria-hidden="true"><div id="progress-fill"></div></div>
+    <div id="status-text">Loading game...</div>
+    <div id="bar-container" aria-hidden="true"><div id="bar-fill"></div></div>
     <div id="progress-detail">0.00 MB / 1294.63 MB</div>
-    <div id="loading-error"></div>
+    <div id="error-box"></div>
   </div>
-  <div id="orientation">GIRE O DISPOSITIVO</div>
+  <div id="orientation">Rotate your device</div>
 
-  <!-- Web port by crackers (woahhcrackers): https://github.com/woahhcrackers/CupheadWeb -->
-  
-<!-- Fullscreen is controlled by the GameHub player. -->
+  <script src="Build/Cuphead.loader.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const canvas = document.querySelector('#unity-canvas');
+    const loadingUI = document.querySelector('#loading-ui');
+    const statusText = document.querySelector('#status-text');
+    const barFill = document.querySelector('#bar-fill');
+    const progressDetail = document.querySelector('#progress-detail');
+    const errorBox = document.querySelector('#error-box');
+    const orientation = document.querySelector('#orientation');
+    const PART_COUNT = 26;
+    const TOTAL_BYTES = 1294.63 * 1024 * 1024;
+    let loadedBytes = 0;
 
+    const notifyParent = (state, message) => {
+      if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*');
+    };
+    const formatMB = bytes => (bytes / 1048576).toFixed(2);
+    const updateProgress = (message, bytes = loadedBytes, percent = Math.min(100, bytes / TOTAL_BYTES * 100)) => {
+      statusText.textContent = message;
+      progressDetail.textContent = `${formatMB(Math.min(bytes, TOTAL_BYTES))} MB / ${formatMB(TOTAL_BYTES)} MB`;
+      barFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    };
+    const showError = message => {
+      statusText.textContent = 'Could not start Cuphead';
+      errorBox.textContent = message || 'Refresh the page to try again.';
+      errorBox.style.display = 'block';
+      notifyParent('error', message || 'Could not start Cuphead');
+    };
+
+    async function loadMultipartData() {
+      const parts = [];
+      for (let index = 1; index <= PART_COUNT; index += 1) {
+        const filename = `Build/Cuphead.data.${String(index).padStart(3, '0')}`;
+        const response = await fetch(filename, { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`Missing ${filename}`);
+        const buffer = await response.arrayBuffer();
+        loadedBytes += buffer.byteLength;
+        parts.push(buffer);
+        updateProgress('Downloading game files');
+      }
+      return URL.createObjectURL(new Blob(parts, { type: 'application/octet-stream' }));
+    }
+
+    function updateOrientation() {
+      const needsLandscape = window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+      orientation.style.display = needsLandscape ? 'grid' : 'none';
+    }
+    window.addEventListener('resize', updateOrientation, { passive: true });
+    window.addEventListener('orientationchange', updateOrientation, { passive: true });
+    updateOrientation();
+
+    (async () => {
+      try {
+        notifyParent('loading', 'Downloading game files');
+        const dataUrl = await loadMultipartData();
+        updateProgress('Starting game', TOTAL_BYTES, 96);
+        const config = {
+          dataUrl,
+          frameworkUrl: 'Build/Cuphead.framework.js',
+          codeUrl: 'Build/Cuphead.wasm',
+          streamingAssetsUrl: 'StreamingAssets',
+          companyName: 'Studio MDHR',
+          productName: 'Cuphead',
+          productVersion: '1.0'
+        };
+        await createUnityInstance(canvas, config, progress => {
+          const percent = 96 + Math.max(0, Math.min(1, progress)) * 4;
+          updateProgress(progress >= 1 ? 'Starting game' : 'Loading game engine', TOTAL_BYTES, percent);
+        });
+        updateProgress('Ready', TOTAL_BYTES, 100);
+        notifyParent('ready');
+        setTimeout(() => { loadingUI.style.display = 'none'; }, 250);
+      } catch (error) {
+        showError(error && error.message ? error.message : 'The game files could not be loaded.');
+      }
+    })();
+  })();
+  </script>
+  <script id="gamehub-touch-behavior">
+  (() => {
+    const clearTransientTouchState = () => {
+      if (window.getSelection) window.getSelection().removeAllRanges();
+      const active = document.activeElement;
+      if (active && active !== document.body && !/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) active.blur();
+    };
+    document.addEventListener('pointerup', clearTransientTouchState, { capture: true, passive: true });
+    document.addEventListener('touchend', clearTransientTouchState, { capture: true, passive: true });
+  })();
+  </script>
 </body>
 </html>
