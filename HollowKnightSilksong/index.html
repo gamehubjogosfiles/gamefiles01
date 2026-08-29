@@ -18,18 +18,9 @@
     #save-button { position: fixed; z-index: 20; top: 12px; right: 12px; display: none; padding: 9px 13px; color: #ffe9ea; background: rgba(18, 2, 6, .9); border: 1px solid rgba(224, 67, 93, .60); font: 700 12px Arial, sans-serif; letter-spacing: .04em; cursor: pointer; }
     #save-button:hover { background: rgba(86, 13, 27, .94); }
   </style>
-  <script>
-    (() => {
-      const isMobile = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);
-      if (!isMobile) return;
-      const enableFullscreen = () => {
-        const root = document.documentElement;
-        const request = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
-        if (request && !document.fullscreenElement && !document.webkitFullscreenElement) Promise.resolve(request.call(root)).catch(() => {});
-      };
-      ['touchstart', 'click', 'keydown'].forEach(eventName => window.addEventListener(eventName, enableFullscreen, { once: true, passive: eventName === 'touchstart' }));
-    })();
-  </script>
+  
+<!-- Fullscreen is controlled by the GameHub player. -->
+
 </head>
 <body>
   <div id="unity-container"><canvas id="unity-canvas" tabindex="-1" aria-label="Hollow Knight: Silksong"></canvas></div>

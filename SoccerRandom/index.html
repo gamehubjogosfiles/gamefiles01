@@ -1,23 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script>
-    (function() {
-        function enableFullscreen() {
-            const docEl = document.documentElement;
-            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-            if (requestFullScreen) {
-                requestFullScreen.call(docEl).catch(e => {});
-            }
-        }
+    
+<!-- Fullscreen is controlled by the GameHub player. -->
 
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            ['touchstart', 'click', 'keydown'].forEach(event => {
-                window.addEventListener(event, enableFullscreen, { once: true });
-            });
-        }
-    })();
-</script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     
@@ -63,37 +49,9 @@ window.addEventListener("keydown", function(e) {
 <body style="overflow:hidden;">
     <!-- Fullscreen Overlay for Construct 3 Games -->
     <div id="fs-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.01); z-index:999999; cursor:pointer;"></div>
-    <script>
-        (function() {
-            const overlay = document.getElementById('fs-overlay');
-            const isMobile = /iPhone|iPad|iPod|Android|Mobile|Tablet/i.test(navigator.userAgent);
-            if (!isMobile) {
-                overlay.remove();
-                return;
-            }
+    
+<!-- Fullscreen is controlled by the GameHub player. -->
 
-            function enableFullscreen() {
-                const docEl = document.documentElement;
-                const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-                if (requestFullScreen) {
-                    requestFullScreen.call(docEl).then(() => {
-                        overlay.style.display = 'none';
-                    }).catch(e => {
-                        console.error("FS Error:", e);
-                        overlay.style.display = 'none';
-                    });
-                } else {
-                    overlay.style.display = 'none';
-                }
-            }
-
-            overlay.addEventListener('click', enableFullscreen, { once: true });
-            overlay.addEventListener('touchstart', enableFullscreen, { once: true });
-            
-            // Auto-hide if already in FS or after timeout
-            setTimeout(() => { overlay.style.display = 'none'; }, 10000);
-        })();
-    </script>
 
 <div id="fb-root"></div>
 	<script src="box2d.wasm.js"></script>
