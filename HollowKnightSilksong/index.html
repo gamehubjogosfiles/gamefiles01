@@ -41,6 +41,8 @@
     const progressDetail = document.getElementById('progress-detail');
     const errorBox = document.getElementById('error-box');
     const saveButton = document.getElementById('save-button');
+    const notifyParent = (state, message) => { if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*'); };
+    let gameReady = false;
     const CACHE_NAME = 'gamehub-hollow-knight-silksong-v1';
     const TOTAL_ARCHIVE_BYTES = 2083139638;
     const originalFetch = window.fetch.bind(window);
@@ -58,6 +60,7 @@
       statusText.textContent = 'Could not start Silksong';
       errorBox.textContent = 'Refresh the page to try again.';
       errorBox.style.display = 'block';
+      notifyParent('error', 'Could not start Silksong');
     }
     async function cacheIsReady() {
       const cache = await caches.open(CACHE_NAME);
@@ -137,7 +140,7 @@
       script.onload = () => createUnityInstance(canvas, config, progress => {
         statusText.textContent = progress >= 1 ? 'Ready' : 'Starting game';
         progressDetail.textContent = progress >= 1 ? `${formatMB(TOTAL_ARCHIVE_BYTES)} / ${formatMB(TOTAL_ARCHIVE_BYTES)}` : 'Loading game runtime';
-        if (progress >= 1) setTimeout(() => { loadingUI.style.display = 'none'; saveButton.style.display = 'block'; }, 250);
+        if (progress >= 1 && !gameReady) { gameReady = true; notifyParent('ready'); setTimeout(() => { loadingUI.style.display = 'none'; saveButton.style.display = 'block'; }, 250); }
       }).catch(showError);
       script.onerror = () => showError(new Error('Could not load the game runtime.'));
       document.body.appendChild(script);
