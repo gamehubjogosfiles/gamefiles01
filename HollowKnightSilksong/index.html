@@ -99,6 +99,20 @@
     function partNames(file, count) {
       return Array.from({ length: count }, (_, index) => `${file}.part${index + 1}`);
     }
+    async function fetchPartsWithProgress(parts) {
+      const buffers = new Array(parts.length);
+      let nextIndex = 0;
+      const worker = async () => {
+        while (true) {
+          const index = nextIndex++;
+          if (index >= parts.length) return;
+          buffers[index] = await fetchWithProgress(parts[index]);
+        }
+      };
+      const workers = Array.from({ length: Math.min(4, parts.length) }, worker);
+      await Promise.all(workers);
+      return buffers;
+    }
     async function unzipAndCache(zipBlob) {
       statusText.textContent = 'Preparing game files';
       progressDetail.textContent = 'Unpacking local assets';
@@ -151,7 +165,7 @@
         if (!(await cacheIsReady())) {
           renderProgress('Downloading game files');
           const parts = partNames('StreamingAssets/aa/WebGL.zip', 100);
-          const buffers = await Promise.all(parts.map(fetchWithProgress));
+          const buffers = await fetchPartsWithProgress(parts);
           await unzipAndCache(new Blob(buffers));
         } else {
           loadedBytes = TOTAL_ARCHIVE_BYTES;
