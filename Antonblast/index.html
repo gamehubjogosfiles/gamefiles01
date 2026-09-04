@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
     <link rel="icon" type="x-icon" href="favicon.png">
-    <title>Anton Blast Demo v1.2</title>
+    <title>Antonblast</title>
     <style>
       @-webkit-keyframes rotation {
         from {
@@ -203,9 +203,12 @@
         margin: 10px;
       }
 
-      .output-container, #message-container {
+      .output-container, #message-container, #colorpicker, #QRButton, #QR2Button, #stats-button, #share-button {
         display: none !important;
       }
+      body > .loading { position: fixed; inset: 0; z-index: 20; }
+      body > canvas.emscripten { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; }
+
       .output-button {
         border: none;
         width: 200px;
