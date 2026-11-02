@@ -7,7 +7,6 @@
   <meta name="description" content="Play Cuphead online on GameHub.">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="../gamehub-loading-theme.css?v=20260830-center">
-  <script src="../gamehub-loading-theme.js"></script>
   <title>Cuphead</title>
   <style>
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
@@ -24,7 +23,7 @@
 </head>
 <body>
   <div id="unity-container"><canvas id="unity-canvas" width="960" height="600" tabindex="-1" aria-label="Cuphead"></canvas></div>
-  <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;" role="status" aria-live="polite">
+  <div id="loading-ui" class="gamehub-loading" data-loading-style="sepia" style="--gamehub-load-accent: #f0c846;" role="status" aria-live="polite">
     <div id="status-text">Loading game...</div>
     <div id="bar-container" aria-hidden="true"><div id="bar-fill"></div></div>
     <div id="progress-detail">0.00 MB / 1294.63 MB</div>

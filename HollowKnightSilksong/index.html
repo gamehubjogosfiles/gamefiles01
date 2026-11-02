@@ -9,7 +9,6 @@
   <title>Hollow Knight: Silksong</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="gamehub-loading-theme.css?v=20260830-center">
-  <script src="gamehub-loading-theme.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
@@ -25,8 +24,8 @@
 </head>
 <body>
   <div id="unity-container"><canvas id="unity-canvas" tabindex="-1" aria-label="Hollow Knight: Silksong"></canvas></div>
-  <div id="loading-ui" class="gamehub-loading" style="--gamehub-load-accent: #ffd400;" role="status" aria-live="polite">
-    <div id="status-text">Loading game...</div>
+  <div id="loading-ui" class="gamehub-loading" data-loading-style="silk" style="--gamehub-load-accent: #e0435d;" role="status" aria-live="polite">
+    <div id="status-text">Preparing game files</div>
     <div id="bar-container" aria-hidden="true"><div id="bar-fill"></div></div>
     <div id="progress-detail">0.00 MB / 1986.64 MB</div>
     <div id="error-box"></div>
@@ -115,7 +114,7 @@
       return buffers;
     }
     async function unzipAndCache(zipBlob) {
-      statusText.textContent = 'Loading game...';
+      statusText.textContent = 'Preparing game files';
       progressDetail.textContent = 'Unpacking local assets';
       barFill.style.width = '100%';
       const zip = await JSZip.loadAsync(zipBlob);
@@ -130,7 +129,7 @@
           await cache.put(file.name, new Response(blob));
           processed += 1;
         }));
-        statusText.textContent = `Loading game... (${processed}/${files.length})`;
+        statusText.textContent = `Preparing game files (${processed}/${files.length})`;
         await new Promise(resolve => setTimeout(resolve, 0));
       }
       await cache.put('CACHE_COMPLETE', new Response('ok'));
