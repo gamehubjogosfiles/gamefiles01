@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <meta name="description" content="Play Cuphead online on GameHub.">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="../gamehub-loading-theme.css?v=20260830-center">
+  <link rel="stylesheet" href="TemplateData/style.css">
   <title>Cuphead</title>
   <style>
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
@@ -22,12 +22,15 @@
   </style>
 </head>
 <body>
-  <div id="unity-container"><canvas id="unity-canvas" width="960" height="600" tabindex="-1" aria-label="Cuphead"></canvas></div>
-  <div id="loading-ui" class="gamehub-loading" data-loading-style="sepia" style="--gamehub-load-accent: #f0c846;" role="status" aria-live="polite">
-    <div id="status-text">Loading game...</div>
-    <div id="bar-container" aria-hidden="true"><div id="bar-fill"></div></div>
-    <div id="progress-detail">0.00 MB / 1294.63 MB</div>
-    <div id="error-box"></div>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width="960" height="600" tabindex="-1" aria-label="Cuphead"></canvas>
+    <div id="unity-loading-bar" role="status" aria-live="polite">
+      <div id="unity-logo" aria-hidden="true"></div>
+      <div id="unity-progress-bar-empty" role="progressbar" aria-label="Loading Cuphead" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning" role="alert"></div>
   </div>
   <div id="orientation">Rotate your device</div>
 
@@ -36,28 +39,27 @@
   (() => {
     'use strict';
     const canvas = document.querySelector('#unity-canvas');
-    const loadingUI = document.querySelector('#loading-ui');
-    const statusText = document.querySelector('#status-text');
-    const barFill = document.querySelector('#bar-fill');
-    const progressDetail = document.querySelector('#progress-detail');
-    const errorBox = document.querySelector('#error-box');
+    const loadingBar = document.querySelector('#unity-loading-bar');
+    const progressBar = document.querySelector('#unity-progress-bar-empty');
+    const progressBarFull = document.querySelector('#unity-progress-bar-full');
+    const errorBox = document.querySelector('#unity-warning');
     const orientation = document.querySelector('#orientation');
     const PART_COUNT = 26;
     const TOTAL_BYTES = 1294.63 * 1024 * 1024;
     let loadedBytes = 0;
+    loadingBar.style.display = 'block';
 
     const notifyParent = (state, message) => {
       if (window.parent !== window) window.parent.postMessage({ gamehub: 'game-status', state, message: message || '' }, '*');
     };
-    const formatMB = bytes => (bytes / 1048576).toFixed(2);
-    const updateProgress = (message, bytes = loadedBytes, percent = Math.min(100, bytes / TOTAL_BYTES * 100)) => {
-      statusText.textContent = message;
-      progressDetail.textContent = `${formatMB(Math.min(bytes, TOTAL_BYTES))} MB / ${formatMB(TOTAL_BYTES)} MB`;
-      barFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    const updateProgress = (message, bytes = loadedBytes, percent = Math.min(96, bytes / TOTAL_BYTES * 96)) => {
+      const safePercent = Math.max(0, Math.min(100, percent));
+      progressBarFull.style.width = `${safePercent}%`;
+      progressBar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
+      progressBar.setAttribute('aria-label', message);
     };
     const showError = message => {
-      statusText.textContent = 'Could not start Cuphead';
-      errorBox.textContent = message || 'Refresh the page to try again.';
+      errorBox.textContent = message || 'Could not start Cuphead. Refresh the page to try again.';
       errorBox.style.display = 'block';
       notifyParent('error', message || 'Could not start Cuphead');
     };
@@ -109,7 +111,8 @@
           streamingAssetsUrl: 'StreamingAssets',
           companyName: 'Studio MDHR',
           productName: 'Cuphead',
-          productVersion: '1.0'
+          productVersion: '1.0',
+          unityFileSystemInit: () => {}
         };
         await createUnityInstance(canvas, config, progress => {
           const percent = 96 + Math.max(0, Math.min(1, progress)) * 4;
@@ -117,7 +120,7 @@
         });
         updateProgress('Ready', TOTAL_BYTES, 100);
         notifyParent('ready');
-        setTimeout(() => { loadingUI.style.display = 'none'; }, 250);
+        setTimeout(() => { loadingBar.style.display = 'none'; }, 250);
       } catch (error) {
         showError(error && error.message ? error.message : 'The game files could not be loaded.');
       }
